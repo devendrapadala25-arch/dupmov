@@ -36,16 +36,13 @@ const Titlecard = ({ title, genre, category }) => {
         cardsRef.current.scrollLeft += event.deltaY;
     }
     useEffect(() => {
-
-
-        console.log(import.meta.env.VITE_TMDB_KEY);
-
-        fetch(
-            `https://api.themoviedb.org/3/${genre ? genre : "movie"}/${category ? category : "now_playing"}?api_key=${import.meta.env.VITE_TMDB_KEY}&language=en-US&page=1`
-        )
+        // Construct the path for the backend proxy
+        const path = `${genre ? genre : "movie"}/${category ? category : "now_playing"}`;
+        console.log("Fetching from backend:", `/api/tmdb?path=${path}`);
+        fetch(`/api/tmdb?path=${path}&language=en-US&page=1`)
             .then(res => res.json())
             .then(data => setapidata(data.results || []))
-            .catch(err => console.error(err));
+            .catch(err => console.error("Error fetching movies:", err));
 
         const currentRef = cardsRef.current;
         currentRef.addEventListener('wheel', handlewheel);
@@ -53,7 +50,8 @@ const Titlecard = ({ title, genre, category }) => {
         return () => {
             currentRef.removeEventListener('wheel', handlewheel);
         };
-    }, []);
+       
+    }, [genre, category]); // optional: add genre/category as dependencies
     return (
         <div className="title-cards">
             <h2>{title ? title : "Popular on dupmov"}</h2>
