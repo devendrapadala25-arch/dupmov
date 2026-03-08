@@ -1,0 +1,56 @@
+.hero-f {
+    position: relative;
+}
+
+.banner-img-f {
+    width: 100%;
+    mask-image: linear-gradient(to right, transparent, black 75%);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 75%);
+
+}
+
+.favorites {
+    position: absolute;
+    width: 100%;
+    padding-left: 6%;
+    top: 100px;
+}
+
+
+
+.movies-grid-f {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-height: 600px;
+
+    
+
+    padding: 20px;
+    border-radius: 10px;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.movies-grid-f::-webkit-scrollbar{
+    display: none;
+}
+
+
+.p-f{
+    font-size: 20px;
+}
+
+.p-f a{
+    cursor: pointer;
+}
+.p-f a:hover{
+    color: black;
+}
