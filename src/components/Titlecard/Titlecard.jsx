@@ -1,76 +1,71 @@
-import React, { useEffect, useRef, useState } from 'react'
-import './Titlecard.css'
-import cards_data from '../../assets/cards/Cards_data'
+import React, { useEffect, useRef, useState } from 'react';
+import './Titlecard.css';
 import { Link } from 'react-router-dom';
 import { useMoviecontext } from '../Contexts/Moviecontext';
 
-
-
-
-
-const Titlecard = ({ title, genre, category }) => {
-
-
+const Titlecard = ({ title, genre, category, searchQuery }) => {
     const [apidata, setapidata] = useState([]);
     const cardsRef = useRef();
 
-    const { isFavorite, addToFavorites, removeFavorites } = useMoviecontext()
-    const [favorite, setfavorite] = useState(false)
+    const { isFavorite, addToFavorites, removeFavorites } = useMoviecontext();
 
+    const handleFavoriteClick = (e, card) => {
+        e.preventDefault();
+        if (isFavorite(card.id)) removeFavorites(card.id);
+        else addToFavorites(card);
+    };
 
-    function onFavoriteClick(e, card) {
-        e.preventDefault()
+    const handleWheel = (e) => {
+        e.preventDefault();
+        cardsRef.current.scrollLeft += e.deltaY;
+    };
 
-        if (isFavorite(card.id)) {
-            removeFavorites(card.id)
-        } else {
-            addToFavorites(card)
-        }
-    }
-
-
-    console.log(apidata)
-
-    const handlewheel = (event) => {
-        event.preventDefault();
-        cardsRef.current.scrollLeft += event.deltaY;
-    }
     useEffect(() => {
-        // Construct the path for the backend proxy
-        const path = `${genre ? genre : "movie"}/${category ? category : "now_playing"}`;
-        console.log("Fetching from backend:", `/api/tmdb?path=${path}`);
-        fetch(`/api/tmdb?path=${path}&language=en-US&page=1`)
+        let path = genre ? `${genre}/${category || "popular"}` : "movie/now_playing";
+        // If search query exists, override path
+        if (searchQuery) path = "search/movie";
+
+        const params = new URLSearchParams(
+            searchQuery ? { query: searchQuery } : { language: "en-US", page: 1 }
+        );
+
+        fetch(`/api/tmdb?path=${path}&${params.toString()}`)
             .then(res => res.json())
             .then(data => setapidata(data.results || []))
             .catch(err => console.error("Error fetching movies:", err));
 
         const currentRef = cardsRef.current;
-        currentRef.addEventListener('wheel', handlewheel);
+        currentRef.addEventListener('wheel', handleWheel);
 
-        return () => {
-            currentRef.removeEventListener('wheel', handlewheel);
-        };
-       
-    }, [genre, category]); // optional: add genre/category as dependencies
+        return () => currentRef.removeEventListener('wheel', handleWheel);
+    }, [genre, category, searchQuery]);
+
     return (
         <div className="title-cards">
-            <h2>{title ? title : "Popular on dupmov"}</h2>
+            <h2>{title || "Popular on dupmov"}</h2>
             <div className="card-list" ref={cardsRef}>
-                {apidata.map((card, index) => {
-                    return <Link to={`/${genre ? genre : "movie"}/player/${card.id}`} className='card' key={index}>
-                        <img src={`https://image.tmdb.org/t/p/w500${card.backdrop_path}`} alt="" />
+                {apidata.map((card, index) => (
+                    <Link
+                        key={index}
+                        to={`/${genre || "movie"}/player/${card.id}`}
+                        className="card"
+                    >
+                        <img
+                            src={`https://image.tmdb.org/t/p/w500${card.backdrop_path}`}
+                            alt={genre === "movie" ? card.original_title : card.original_name}
+                        />
                         <button
                             className={`favorite-btn-t ${isFavorite(card.id) ? 'active' : ''}`}
-                            onClick={(e) => onFavoriteClick(e, card)}
+                            onClick={(e) => handleFavoriteClick(e, card)}
                         >
                             ♥
                         </button>
-                        <p>{genre === 'movie' ? card.original_title : card.original_name}</p>
+                        <p>{genre === "movie" ? card.original_title : card.original_name}</p>
                     </Link>
-                })}
+                ))}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Titlecard
+export default Titlecard;
